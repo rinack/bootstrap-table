@@ -128,6 +128,14 @@
       return !isNaN(parseFloat(n)) && isFinite(n)
     },
 
+    html (target, elem) {
+      while (target.firstChild) {
+        target.removeChild(target.firstChild)
+      }
+
+      target.appendChild(elem)
+    },
+
     getFieldTitle (list, value) {
       for (const item of list) {
         if (item.field === value) {
@@ -199,6 +207,7 @@
     },
 
     calculateObjectValue (self, name, args, defaultValue) {
+      return defaultValue
       let func = name
 
       if (typeof name === 'string') {
@@ -1719,7 +1728,7 @@
       return false
     }
 
-    initRow (item, i, data, parentDom) {
+    initRow (item, i) {
       const html = []
       let style = {}
       const csses = []
@@ -1916,8 +1925,9 @@
         html.push('</div></td>')
       }
       html.push('</tr>')
-
-      return html.join('')
+      var trElement = document.createElement('tr')
+      trElement.innerHTML = html.join('')
+      return trElement
     }
 
     initBody (fixedScroll) {
@@ -1936,25 +1946,25 @@
         this.pageTo = data.length
       }
 
-      const trFragments = $(document.createDocumentFragment())
+      const trFragments = document.createDocumentFragment()
       let hasTr = false
 
       for (let i = this.pageFrom - 1; i < this.pageTo; i++) {
         const item = data[i]
-        const tr = this.initRow(item, i, data, trFragments)
+        const tr = this.initRow(item, i)
         hasTr = hasTr || !!tr
-        if (tr && typeof tr === 'string') {
-          trFragments.append(tr)
+        if (tr && typeof tr === 'object') {
+          trFragments.appendChild(tr)
         }
       }
 
       // show no records
       if (!hasTr) {
-        this.$body.html(`<tr class="no-records-found">${Utils.sprintf('<td colspan="%s">%s</td>',
+        Utils.html(this.$body[0], `<tr class="no-records-found">${Utils.sprintf('<td colspan="%s">%s</td>',
           this.$header.find('th').length,
           this.options.formatNoMatches())}</tr>`)
       } else {
-        this.$body.html(trFragments)
+        Utils.html(this.$body[0], trFragments)
       }
 
       if (!fixedScroll) {
@@ -2005,11 +2015,11 @@
 
         // remove and update
         if ($tr.next().is('tr.detail-view')) {
-          $this.html(Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.detailOpen))
+          Utils.html($this, Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.detailOpen))
           this.trigger('collapse-row', index, row, $tr.next())
           $tr.next().remove()
         } else {
-          $this.html(Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.detailClose))
+          Utils.html($this, Utils.sprintf(this.constants.html.icon, this.options.iconsPrefix, this.options.icons.detailClose))
           $tr.after(Utils.sprintf('<tr class="detail-view"><td colspan="%s"></td></tr>', $tr.children('td').length))
           const $element = $tr.next().find('td')
           const content = Utils.calculateObjectValue(this.options, this.options.detailFormatter, [index, row, $element], '')
@@ -2379,7 +2389,7 @@
         html.push('</th>')
       }
 
-      this.$tableFooter.find('tr').html(html.join(''))
+      Utils.html(this.$tableFooter.find('tr'), html.join(''))
       this.$tableFooter.show()
       this.fitFooter()
     }
