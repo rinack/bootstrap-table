@@ -2376,11 +2376,27 @@
 
       this.$header_ = this.$header.clone(true, true)
       this.$selectAll_ = this.$header_.find('[name="btSelectAll"]')
-      this.$tableHeader
-        .css('margin-right', scrollWidth)
-        .find('table').css('width', this.$el.outerWidth())
-        .html('').attr('class', this.$el.attr('class'))
-        .append(this.$header_)
+      
+      /**
+       * ----------------------------- 原始代码  Begin ----------------------------
+       * this.$tableHeader
+       *  .css('margin-right', scrollWidth)
+       *  .find('table').css('width', this.$el.outerWidth())
+       *  .html('').attr('class', this.$el.attr('class'))
+       *  .append(this.$header_)
+       * ------------------------------ 原始代码  End  ----------------------------
+       * 变更前 在出现竖向滚动条的时候表头与内容宽度相差一个滚动条的宽度
+       * 一次变更后 
+       *   .find('table').css('width', this.$el.outerWidth() + Utils.getScrollBarWidth())
+       *   表头可以对齐表行内容，但在通过 CSS或JS 触发布局缩放后表头不随之改变
+       *
+       * 二次变更代码
+       *  去掉 .find('table').css('width', this.$el.outerWidth());
+       * 与 table 内容保持一致 css 样式
+       * 变更后代码
+       * 
+       */
+      this.$tableHeader.css('margin-right', scrollWidth).find('table').html('').attr('class', this.$el.attr('class')).append(this.$header_);
 
       this.$tableLoading.css('width', this.$el.outerWidth())
 
